@@ -49,6 +49,7 @@ const CustomMap = () => {
             }
 
             let weatherPoints = [];
+            console.log(coordinates.length);
             for (let i = 0; i < coordinates.length; i += 50) { // Her 10 noktada bir hava durumu al
                 if (!coordinates[i]) {
                     console.log(`Hata: coordinates[${i}] undefined!`); // Hangi noktada hata olduğunu görmek için

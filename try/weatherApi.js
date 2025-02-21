@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-const API_KEY = "182cd635f2a526257126b64bab5ec7cb";
+const API_KEY = "e08aec03bff4306713ccb906ffdc971f";
 const CITY = "Isparta";
 
 const getWeather = async (city) => {
