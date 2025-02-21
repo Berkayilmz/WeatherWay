@@ -12,9 +12,10 @@ const WeatherScreen = ({ route }) => {
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
                     <View style={styles.item}>
-                        <Text>📍 Koordinatlar: {item.latitude}, {item.longitude}</Text>
+                        <Text>📍 Yol: {item.name}</Text>
+                        <Text>🌆 Şehir: {item.city}</Text>
                         <Text>🌡 Sıcaklık: {item.temp}°C</Text>
-                        <Text>🌥 Hava Durumu: {item.condition}</Text>
+                        <Text>☁️ Hava Durumu: {item.condition}</Text>
                     </View>
                 )}
             />
@@ -23,22 +24,9 @@ const WeatherScreen = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        backgroundColor: "#f5f5f5",
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: "bold",
-        marginBottom: 10,
-    },
-    item: {
-        padding: 10,
-        backgroundColor: "#fff",
-        borderRadius: 8,
-        marginBottom: 10,
-    },
+    container: { flex: 1, padding: 20, backgroundColor: "#f5f5f5" },
+    title: { fontSize: 20, fontWeight: "bold", marginBottom: 10 },
+    item: { padding: 10, backgroundColor: "#fff", borderRadius: 8, marginBottom: 10 },
 });
 
 export default WeatherScreen;
