@@ -9,16 +9,12 @@ const HomeScreen = ({ navigation }) => {
     const [endCity, setEndCity] = useState("");
     const [startCoords, setStartCoords] = useState(null);
     const [endCoords, setEndCoords] = useState(null);
-    const [weatherData, setWeatherData] = useState([]);
-    const [isRouteReady, setIsRouteReady] = useState(false); // 🔥 Buton için kontrol
+    const [routeData, setRouteData] = useState([]);
+    const [isRouteReady, setIsRouteReady] = useState(false);
 
     useEffect(() => {
-        if (startCoords && endCoords) {
-            setIsRouteReady(true); // Eğer koordinatlar varsa butonu aktif yap
-        } else {
-            setIsRouteReady(false);
-        }
-    }, [startCoords, endCoords]); // Koordinatlar değişirse güncellenir
+        setIsRouteReady(!!(startCoords && endCoords));
+    }, [startCoords, endCoords]);
 
     const getCoordinates = async (city, type) => {
         try {
@@ -29,26 +25,18 @@ const HomeScreen = ({ navigation }) => {
 
             const url = `https://nominatim.openstreetmap.org/search?q=${city}&format=json`;
             const response = await axios.get(url, {
-                headers: {
-                    "User-Agent": "Mozilla/5.0",
-                },
+                headers: { "User-Agent": "Mozilla/5.0" },
             });
 
             if (response.data.length > 0) {
                 const { lat, lon } = response.data[0];
                 const coords = { latitude: parseFloat(lat), longitude: parseFloat(lon) };
-
-                if (type === "start") {
-                    setStartCoords(coords);
-                } else {
-                    setEndCoords(coords);
-                }
+                type === "start" ? setStartCoords(coords) : setEndCoords(coords);
             } else {
                 Alert.alert("Hata", `${city} için koordinat bulunamadı!`);
             }
         } catch (error) {
             Alert.alert("Hata", `Koordinatlar alınırken hata oluştu: ${city}`);
-            console.error(`🚨 Koordinatlar alınırken hata oluştu (${city}): `, error);
         }
     };
 
@@ -64,39 +52,35 @@ const HomeScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <CityTextInput city={startCity} setCity={setStartCity} placeholder="Başlangıç şehri" />
-            <CityTextInput city={endCity} setCity={setEndCity} placeholder="Varış şehri" />
+            <CityTextInput city={startCity} setCity={setStartCity} placeholder="Başlangıç Şehri" />
+            <CityTextInput city={endCity} setCity={setEndCity} placeholder="Varış Şehri" />
 
             <View style={styles.buttonContainer}>
                 <Button title="Rota Oluştur" onPress={handleCreateRoute} />
             </View>
 
             <View style={styles.mapContainer}>
-                <CustomMap 
-                    startCoords={startCoords} 
-                    endCoords={endCoords} 
-                    setWeatherData={setWeatherData} 
-                />
+                <CustomMap startCoords={startCoords} endCoords={endCoords} setRouteData={setRouteData} />
             </View>
 
             <View style={styles.buttonContainer}>
                 <Button
                     title="Hava Durumunu Göster"
-                    onPress={() => navigation.navigate("WeatherScreen", { weatherData })}
-                    disabled={!isRouteReady} // 🔥 Eğer rota hazır değilse butonu kapalı tut
+                    onPress={() => {
+                        console.log("📌 WeatherScreen'e Gönderilen Rota Verisi:", routeData);
+                        navigation.navigate("WeatherScreen", { routeData }); // 🔥 Burada routeData'nın düzgün gönderildiğini kontrol ediyoruz
+                    }}
+                    disabled={!isRouteReady}
                 />
             </View>
+
         </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    buttonContainer: {
-        padding: 10,
-        backgroundColor: "#fff",
-        alignItems: "center",
-    },
+    buttonContainer: { padding: 10, backgroundColor: "#fff", alignItems: "center" },
     mapContainer: { flex: 6 },
 });
 

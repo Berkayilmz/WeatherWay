@@ -1,29 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { StyleSheet } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from "react-native-maps";
 import axios from "axios";
 
-const OPENWEATHER_API_KEY = "e08aec03bff4306713ccb906ffdc971f"; 
-
-const CustomMap = ({ startCoords, endCoords, setWeatherData }) => {
+const CustomMap = ({ startCoords, endCoords, setRouteData }) => {
     const [routeCoords, setRouteCoords] = useState([]);
+    const mapRef = useRef(null); // 🔥 MapView'e erişmek için referans
 
     useEffect(() => {
         if (!startCoords || !endCoords) {
             console.log("⏳ Koordinatlar bekleniyor...");
-            return; // Eğer koordinatlar girilmemişse rota çizme
+            return;
         }
-
-        console.log("📍 Güncellenen Koordinatlar:", startCoords, endCoords);
 
         const fetchRoute = async () => {
             try {
                 console.log("🚀 Rota isteği yapılıyor...");
-
                 const OSRM_URL = `https://router.project-osrm.org/route/v1/driving/${startCoords.longitude},${startCoords.latitude};${endCoords.longitude},${endCoords.latitude}?overview=full&geometries=geojson&steps=true`;
-
+                
                 const response = await axios.get(OSRM_URL);
-
                 if (!response.data.routes || response.data.routes.length === 0) {
                     console.log("❌ OSRM API'den geçerli bir rota verisi alınamadı!");
                     return;
@@ -33,14 +28,36 @@ const CustomMap = ({ startCoords, endCoords, setWeatherData }) => {
 
                 const route = response.data.routes[0];
                 const coordinates = route.geometry.coordinates;
-
                 const mappedCoords = coordinates.map((coord) => ({
                     latitude: coord[1],
                     longitude: coord[0],
                 }));
 
                 setRouteCoords(mappedCoords);
-                fetchWeatherData(route.legs); // 🔥 Hata buradaydı! Şimdi tanımlandı.
+
+                let pointsMap = new Map();
+                route.legs.forEach((leg) => {
+                    leg.steps.forEach((step) => {
+                        const [lon, lat] = step.maneuver.location;
+                        const name = step.name || "İsimsiz Yol";
+
+                        if (!pointsMap.has(name)) {
+                            pointsMap.set(name, { name, latitude: lat, longitude: lon });
+                        }
+                    });
+                });
+
+                const uniquePoints = Array.from(pointsMap.values());
+                setRouteData(uniquePoints);
+
+                // 🔥 Harita görünümünü rota koordinatlarına göre güncelle
+                if (mapRef.current) {
+                    mapRef.current.fitToCoordinates(mappedCoords, {
+                        edgePadding: { top: 50, right: 50, bottom: 50, left: 50 }, // Harita kenar boşlukları
+                        animated: true,
+                    });
+                }
+
             } catch (error) {
                 console.error("🚨 Rota bilgisi getirilirken hata oluştu: ", error);
             }
@@ -49,78 +66,13 @@ const CustomMap = ({ startCoords, endCoords, setWeatherData }) => {
         fetchRoute();
     }, [startCoords, endCoords]);
 
-    // **Hava Durumu Verisini Getiren Fonksiyon**
-    const fetchWeatherData = async (legs) => {
-        try {
-            if (!legs || legs.length === 0) {
-                console.log("⚠️ Hava durumu almak için uygun `legs` verisi bulunamadı!");
-                return;
-            }
-
-            const routeMap = new Map();
-
-            // 📌 Yol isimlerini grupluyoruz
-            legs.forEach((leg) => {
-                if (!leg.steps || leg.steps.length === 0) {
-                    console.log("⚠️ `steps` verisi eksik, geçiliyor...");
-                    return;
-                }
-
-                leg.steps.forEach((step) => {
-                    if (!step.maneuver || !step.maneuver.location) {
-                        console.log("⚠️ `maneuver.location` verisi eksik, geçiliyor...");
-                        return;
-                    }
-
-                    const name = step.name && step.name.trim() !== "" ? step.name : "İsimsiz Yol";
-                    const [lon, lat] = step.maneuver.location;
-
-                    if (!routeMap.has(name)) {
-                        routeMap.set(name, { count: 0, totalLat: 0, totalLon: 0 });
-                    }
-
-                    const data = routeMap.get(name);
-                    data.count += 1;
-                    data.totalLat += lat;
-                    data.totalLon += lon;
-                });
-            });
-
-            let weatherDataList = [];
-
-            // 📌 Ortalama koordinatları hesaplıyoruz
-            for (const [name, data] of routeMap.entries()) {
-                const avgLat = data.totalLat / data.count;
-                const avgLon = data.totalLon / data.count;
-
-                const weatherURL = `https://api.openweathermap.org/data/2.5/weather?lat=${avgLat}&lon=${avgLon}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=tr`;
-                try {
-                    const response = await axios.get(weatherURL);
-                    weatherDataList.push({
-                        name,
-                        city: response.data.name || "Bilinmeyen",
-                        temp: response.data.main.temp,
-                        condition: response.data.weather[0].description,
-                        latitude: avgLat,
-                        longitude: avgLon,
-                    });
-                } catch (weatherError) {
-                    console.error(`❌ Hava durumu alınırken hata oluştu (${name}):`, weatherError);
-                }
-            }
-
-            setWeatherData(weatherDataList);
-        } catch (error) {
-            console.error("🚨 Hava durumu alınırken hata oluştu: ", error);
-        }
-    };
-
     return (
         <MapView
+            ref={mapRef} // 🔥 MapView referansını tanımlıyoruz
             provider={PROVIDER_DEFAULT}
             style={styles.map}
             initialRegion={{
-                latitude: startCoords ? startCoords.latitude : 39.9208, // Türkiye'nin merkezi
+                latitude: startCoords ? startCoords.latitude : 39.9208,
                 longitude: startCoords ? startCoords.longitude : 32.8541,
                 latitudeDelta: 5,
                 longitudeDelta: 5,

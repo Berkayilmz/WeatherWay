@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import HomeScreen from './screens/HomeScreen';
 import WeatherScreen from './screens/WeatherScreen';
+import WeatherScreenDetail from './screens/WeatherScreenDetail';
 
 
 const Stack = createNativeStackNavigator();
@@ -15,6 +16,7 @@ export default function App() {
         <Stack.Navigator>
           <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ title: "Harita" }} />
           <Stack.Screen name="WeatherScreen" component={WeatherScreen} options={{ title: "Hava Durumu" }} />
+          <Stack.Screen name="WeatherScreenDetail" component={WeatherScreenDetail} options={{ title: "Hava Durumu Detayları"}}/>
         </Stack.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>
