@@ -34,14 +34,15 @@ const WeatherScreen = ({ route, navigation }) => {
                     >
                         <Text>📍 Yol: {item.name}</Text>
                         <Text>📍 Koordinatlar: {item.latitude}, {item.longitude}</Text>
-                        <Text>⏰ Detayları Görmek İçin Tıklayın</Text>
+                        <Text>🕒 Çıkış Noktasından İtibaren Süre: {Math.floor(item.duration / 60)} dk</Text>
+                        <Text>⏰ Tahmini Varış Saati: {item.formattedArrivalTime}</Text>
+                        <Text>⏩ Detayları Görmek İçin Tıklayın</Text>
                     </TouchableOpacity>
                 )}
             />
         </View>
     );
 };
-
 
 const styles = StyleSheet.create({
     container: { flex: 1, padding: 20, backgroundColor: "#f5f5f5" },

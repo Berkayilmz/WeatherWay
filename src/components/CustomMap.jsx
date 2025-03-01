@@ -17,7 +17,7 @@ const CustomMap = ({ startCoords, endCoords, setRouteData }) => {
             try {
                 console.log("🚀 Rota isteği yapılıyor...");
                 const OSRM_URL = `https://router.project-osrm.org/route/v1/driving/${startCoords.longitude},${startCoords.latitude};${endCoords.longitude},${endCoords.latitude}?overview=full&geometries=geojson&steps=true`;
-                
+
                 const response = await axios.get(OSRM_URL);
                 if (!response.data.routes || response.data.routes.length === 0) {
                     console.log("❌ OSRM API'den geçerli bir rota verisi alınamadı!");
@@ -27,22 +27,48 @@ const CustomMap = ({ startCoords, endCoords, setRouteData }) => {
                 console.log("✅ Rota başarıyla alındı!");
 
                 const route = response.data.routes[0];
-                const coordinates = route.geometry.coordinates;
-                const mappedCoords = coordinates.map((coord) => ({
-                    latitude: coord[1],
-                    longitude: coord[0],
+
+                // 📌 Rota çizgisi için koordinatları al
+                const coordinates = route.geometry.coordinates.map(coord => ({
+                    latitude: coord[1], // OSRM longitude-latitude formatında döner
+                    longitude: coord[0]
                 }));
 
-                setRouteCoords(mappedCoords);
+                if (coordinates.length === 0) {
+                    console.log("⚠️ Rota çizgisi oluşturulamadı. Koordinat verisi boş!");
+                } else {
+                    console.log("📍 Rota Koordinatları:", coordinates);
+                }
 
+                setRouteCoords(coordinates); // Rota çizgisini güncelle
+
+                let totalDuration = 0; // Çıkış noktasından itibaren toplam süre
                 let pointsMap = new Map();
+                let startTime = new Date(); // Şu anki zamanı al (kalkış zamanı)
+
                 route.legs.forEach((leg) => {
                     leg.steps.forEach((step) => {
                         const [lon, lat] = step.maneuver.location;
-                        const name = step.name || "İsimsiz Yol";
+                        const name = step.name || step.ref || "İsimsiz Yol";
+
+                        // 🕒 OSRM API'den gelen tahmini süre (saniye cinsinden)
+                        const duration = step.duration || 0;
+                        totalDuration += duration; // Süreyi kümülatif olarak artır
+
+                        // 📅 Tahmini varış zamanını 24 saatlik formata çevir
+                        const estimatedArrival = new Date(startTime.getTime() + totalDuration * 1000);
+                        const formattedArrivalTime = estimatedArrival.toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+
+                        console.log(`🔹 Yol: ${name} - Süre: ${Math.floor(duration / 60)} dk - Tahmini Varış: ${formattedArrivalTime}`);
 
                         if (!pointsMap.has(name)) {
-                            pointsMap.set(name, { name, latitude: lat, longitude: lon });
+                            pointsMap.set(name, {
+                                name,
+                                latitude: lat,
+                                longitude: lon,
+                                duration: totalDuration,
+                                formattedArrivalTime
+                            });
                         }
                     });
                 });
@@ -52,7 +78,7 @@ const CustomMap = ({ startCoords, endCoords, setRouteData }) => {
 
                 // 🔥 Harita görünümünü rota koordinatlarına göre güncelle
                 if (mapRef.current) {
-                    mapRef.current.fitToCoordinates(mappedCoords, {
+                    mapRef.current.fitToCoordinates(coordinates, {
                         edgePadding: { top: 50, right: 50, bottom: 50, left: 50 }, // Harita kenar boşlukları
                         animated: true,
                     });
