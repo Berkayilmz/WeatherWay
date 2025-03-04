@@ -65,9 +65,8 @@ const HomeScreen = ({ navigation }) => {
 
             <View style={styles.buttonContainer}>
                 <Button
-                    title="Hava Durumunu Göster"
+                    title="GÜZERGAHLARI GÖSTER"
                     onPress={() => {
-                        console.log("📌 WeatherScreen'e Gönderilen Rota Verisi:", routeData);
                         navigation.navigate("WeatherScreen", { routeData }); // 🔥 Burada routeData'nın düzgün gönderildiğini kontrol ediyoruz
                     }}
                     disabled={!isRouteReady}
