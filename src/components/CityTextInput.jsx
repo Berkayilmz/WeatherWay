@@ -19,9 +19,12 @@ const CityTextInput = ({ city, setCity, placeholder }) => {
     const handleTextChange = (text) => {
         setCity(text);
         if (text.length > 0) {
-            const filtered = cities.filter(city => city.toLowerCase().startsWith(text.toLowerCase()));
+            const filtered = cities.filter(c =>
+                c.toLowerCase().startsWith(text.toLowerCase()) // 🔥 startsWith kullanıldı
+            );
+            console.log("Filtered Cities:", filtered); // DEBUG: Şehirleri kontrol et
             setFilteredCities(filtered);
-            setShowDropdown(true);
+            setShowDropdown(filtered.length > 0);
         } else {
             setShowDropdown(false);
         }
@@ -37,21 +40,21 @@ const CityTextInput = ({ city, setCity, placeholder }) => {
             <TextInput
                 style={styles.input}
                 placeholder={placeholder}
+                placeholderTextColor="#aaa"
                 value={city}
                 onChangeText={handleTextChange}
                 keyboardType="default"
-                autoCapitalize="none"
+                autoCapitalize="sentences" // İlk harfi büyük yapması için
                 autoCorrect={false}
-                textContentType="none"
             />
-            {showDropdown && (
+            {showDropdown && filteredCities.length > 0 && (
                 <FlatList
                     data={filteredCities}
                     keyExtractor={(item, index) => index.toString()}
                     style={styles.dropdown}
                     renderItem={({ item }) => (
                         <TouchableOpacity style={styles.dropdownItem} onPress={() => handleSelectCity(item)}>
-                            <Text>{item}</Text>
+                            <Text style={styles.dropdownText}>{item}</Text>
                         </TouchableOpacity>
                     )}
                 />
@@ -79,18 +82,21 @@ const styles = StyleSheet.create({
     dropdown: {
         position: "absolute",
         top: 50,
-        left: 10,
-        right: 10,
+        left: 0,
+        right: 0,
         backgroundColor: "#fff",
         borderWidth: 1,
         borderColor: "#ccc",
         borderRadius: 5,
-        maxHeight: 150,
+        maxHeight: 200, // 🔥 Uzun liste sorunu için
         zIndex: 1000,
     },
     dropdownItem: {
         padding: 10,
         borderBottomWidth: 1,
         borderBottomColor: "#ddd",
+    },
+    dropdownText: {
+        color: "#000", // Siyah yazı
     }
 });
