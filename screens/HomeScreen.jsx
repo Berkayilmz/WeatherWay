@@ -67,7 +67,7 @@ const HomeScreen = ({ navigation }) => {
                 <Button
                     title="GÜZERGAHLARI GÖSTER"
                     onPress={() => {
-                        navigation.navigate("WeatherScreen", { routeData }); // 🔥 Burada routeData'nın düzgün gönderildiğini kontrol ediyoruz
+                        navigation.navigate("WeatherScreen", { routeData, startCity, endCity }); // 🔥 Burada routeData'nın düzgün gönderildiğini kontrol ediyoruz
                     }}
                     disabled={!isRouteReady}
                 />

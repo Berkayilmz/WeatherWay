@@ -1,10 +1,10 @@
 import axios from "axios";
 
-const API_KEY = "e08aec03bff4306713ccb906ffdc971f"; // OpenWeather API anahtarı
+import { OPENWEATHER_API_KEY } from "@env";
 
 const getWeatherForSpecificTime = async (latitude, longitude, targetTime) => {
     try {
-        const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${API_KEY}&units=metric&lang=tr`;
+        const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=tr`;
         const response = await axios.get(url);
 
         if (!response.data || !response.data.list) {

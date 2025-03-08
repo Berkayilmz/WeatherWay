@@ -12,11 +12,14 @@ const WeatherScreenDetail = ({ route }) => {
     useEffect(() => {
         const fetchWeather = async () => {
             try {
-                const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=tr`;
+                const url = `https://pro.openweathermap.org/data/2.5/forecast/hourly?lat=${latitude}&lon=${longitude}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=tr`;
+
                 const response = await axios.get(url);
 
                 if (response.data.list) {
-                    setHourlyForecast(response.data.list);
+                    // 🔥 SADECE SAAT BAŞI OLANLARI AL
+                    const filteredData = response.data.list.filter(item => item.dt_txt.includes(":00:00"));
+                    setHourlyForecast(filteredData);
                 } else {
                     console.error("🚨 API saatlik hava durumu verisi döndürmedi.");
                 }
@@ -46,7 +49,6 @@ const WeatherScreenDetail = ({ route }) => {
                             <Text>🌡 Sıcaklık: {item.main.temp}°C</Text>
                             <Text>☁️ Hava Durumu: {item.weather[0].description}</Text>
                         </View>
-
                     )}
                 />
             ) : (
