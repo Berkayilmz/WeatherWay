@@ -6,6 +6,7 @@ import HomeScreen from './screens/HomeScreen';
 import WeatherScreen from './screens/WeatherScreen';
 import WeatherScreenDetail from './screens/WeatherScreenDetail';
 import CityWeatherDetailScreen from './screens/CityWeatherDetailScreen';
+import RouteLocationScreen from './screens/RouteLocationScreen';
 
 
 const Stack = createNativeStackNavigator();
@@ -19,6 +20,7 @@ export default function App() {
           <Stack.Screen name="WeatherScreen" component={WeatherScreen} options={{ title: "Hava Durumu" }} />
           <Stack.Screen name="WeatherScreenDetail" component={WeatherScreenDetail} options={{ title: "Hava Durumu Detayları" }} />
           <Stack.Screen name="CityWeatherDetailScreen" component={CityWeatherDetailScreen} options={{ title: "Hava Durumu Detayları" }} />
+          <Stack.Screen name="RouteLocationScreen" component={RouteLocationScreen} options={{ title: "Güzergah Bilgisi" }}/>
         </Stack.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>

@@ -6,11 +6,11 @@ const END_LAT = "37.9465412";
 const END_LON = "30.9602093";
 
 const OSRM_URL = `https://router.project-osrm.org/route/v1/driving/${START_LON},${START_LAT};${END_LON},${END_LAT}?overview=full&geometries=geojson&steps=true`;
-import { OPENWEATHER_API_KEY } from "@env";
+const API_KEY = "e08aec03bff4306713ccb906ffdc971f";
 
 const getWeather = async (lon, lat, name) => {
     try {
-        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=tr`;
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=tr`;
         const response = await axios.get(url);
 
         console.log(`📍 Yol: ${name} (${lat.toFixed(5)}, ${lon.toFixed(5)})`);

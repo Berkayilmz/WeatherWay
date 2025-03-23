@@ -56,8 +56,17 @@ const CustomMap = ({ startCoords, endCoords, setRouteData }) => {
                         totalDuration += duration; // Süreyi kümülatif olarak artır
 
                         // 📅 Tahmini varış zamanını 24 saatlik formata çevir
+                        // 📅 Tahmini varış zamanını tam formata çevir (YYYY-MM-DD HH:mm:ss)
                         const estimatedArrival = new Date(startTime.getTime() + totalDuration * 1000);
-                        const formattedArrivalTime = estimatedArrival.toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+
+                        const yyyy = estimatedArrival.getFullYear();
+                        const mm = String(estimatedArrival.getMonth() + 1).padStart(2, "0");
+                        const dd = String(estimatedArrival.getDate()).padStart(2, "0");
+                        const hh = String(estimatedArrival.getHours()).padStart(2, "0");
+                        const min = String(estimatedArrival.getMinutes()).padStart(2, "0");
+                        const ss = String(estimatedArrival.getSeconds()).padStart(2, "0");
+
+                        const formattedArrivalTime = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
 
                         console.log(`🔹 Yol: ${name} - Süre: ${Math.floor(duration / 60)} dk - Tahmini Varış: ${formattedArrivalTime}`);
 

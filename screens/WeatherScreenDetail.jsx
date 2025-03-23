@@ -44,7 +44,7 @@ const WeatherScreenDetail = ({ route }) => {
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={({ item }) => (
                         <View style={styles.item}>
-                            <Text>📅 Tarih: {item.dt_txt.split(" ")[0]}</Text> {/* 🔥 Tarihi ekledik */}
+                            <Text>📅 Tarih: {item.dt_txt.split(" ")[0]}</Text> 
                             <Text>⏰ Saat: {item.dt_txt.split(" ")[1]}</Text>
                             <Text>🌡 Sıcaklık: {item.main.temp}°C</Text>
                             <Text>☁️ Hava Durumu: {item.weather[0].description}</Text>

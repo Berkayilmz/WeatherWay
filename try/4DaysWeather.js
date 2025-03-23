@@ -1,7 +1,8 @@
 const axios = require("axios");
 const readline = require('node:readline');
 const { stdin: input, stdout: output } = require('node:process');
-import { OPENWEATHER_API_KEY } from "@env";
+
+const API_KEY = "e08aec03bff4306713ccb906ffdc971f";
 
 // 🔥 readline'i `async/await` ile çalıştırmak için bir fonksiyon tanımlıyoruz
 const askQuestion = (question) => {
@@ -20,7 +21,7 @@ const getWeather = async () => {
         const CITY = await askQuestion("Şehir ismi girin: ");
 
         // 🔥 Önce şehrin koordinatlarını alalım (Saatlik tahmin için koordinat lazım)
-        const geoUrl = `http://api.openweathermap.org/geo/1.0/direct?q=${CITY}&limit=1&appid=${OPENWEATHER_API_KEY}`;
+        const geoUrl = `http://api.openweathermap.org/geo/1.0/direct?q=${CITY}&limit=1&appid=${API_KEY}`;
         const geoResponse = await axios.get(geoUrl);
 
         if (geoResponse.data.length === 0) {
@@ -31,7 +32,7 @@ const getWeather = async () => {
         const { lat, lon } = geoResponse.data[0];
 
         // 🔥 Şimdi saatlik hava durumu verisini çekelim
-        const url = `https://pro.openweathermap.org/data/2.5/forecast/hourly?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=tr`;
+        const url = `https://pro.openweathermap.org/data/2.5/forecast/hourly?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=tr`;
         const response = await axios.get(url);
 
         // 🔥 Gelen hava durumu verisini gün ve saatlere göre gruplama
