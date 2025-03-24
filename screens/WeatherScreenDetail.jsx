@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, StyleSheet, ActivityIndicator } from "react-native";
 import axios from "axios";
+import { OPENWEATHER_API_KEY } from "@env";
 
-const OPENWEATHER_API_KEY = "e08aec03bff4306713ccb906ffdc971f";
 
 const WeatherScreenDetail = ({ route }) => {
     const { roadName, latitude, longitude } = route.params;

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, StyleSheet, Button } from "react-native";
 import axios from "axios";
-
-const API_KEY = "e08aec03bff4306713ccb906ffdc971f"; // OpenWeather PRO API anahtarı
+import { OPENWEATHER_API_KEY } from '@env';
 
 const WeatherScreen = ({ route, navigation }) => {
     const { routeData, startCity, endCity } = route.params || {};
@@ -18,7 +17,7 @@ const WeatherScreen = ({ route, navigation }) => {
                 const newWeatherData = {};
 
                 for (const item of routeData) {
-                    const url = `https://pro.openweathermap.org/data/2.5/forecast/hourly?lat=${item.latitude}&lon=${item.longitude}&appid=${API_KEY}&units=metric&lang=tr`;
+                    const url = `https://pro.openweathermap.org/data/2.5/forecast/hourly?lat=${item.latitude}&lon=${item.longitude}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=tr`;
                     const response = await axios.get(url);
                     const forecastList = response.data?.list || [];
 
@@ -57,7 +56,7 @@ const WeatherScreen = ({ route, navigation }) => {
             try {
                 if (startCity) {
                     const startResponse = await axios.get(
-                        `http://api.openweathermap.org/data/2.5/weather?q=${startCity}&appid=${API_KEY}&units=metric&lang=tr`
+                        `http://api.openweathermap.org/data/2.5/weather?q=${startCity}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=tr`
                     );
                     setStartCityWeather(startResponse.data);
                     setStartCityCoords({
@@ -68,7 +67,7 @@ const WeatherScreen = ({ route, navigation }) => {
 
                 if (endCity) {
                     const endResponse = await axios.get(
-                        `http://api.openweathermap.org/data/2.5/weather?q=${endCity}&appid=${API_KEY}&units=metric&lang=tr`
+                        `http://api.openweathermap.org/data/2.5/weather?q=${endCity}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=tr`
                     );
                     setEndCityWeather(endResponse.data);
                     setEndCityCoords({
