@@ -20,7 +20,7 @@ const RouteLocationScreen = ({ route }) => {
     useEffect(() => {
         const fetchRoute = async () => {
             try {
-                const OSRM_URL = `https://router.project-osrm.org/route/v1/driving/${startCityLongitude},${startCityLatitude};${longitude},${latitude};${endCityLongitude},${endCityLatitude}?overview=full&geometries=geojson`;
+                const OSRM_URL = `https://router.project-osrm.org/route/v1/driving/${startCityLongitude},${startCityLatitude};${endCityLongitude},${endCityLatitude}?overview=full&geometries=geojson`;
 
                 const response = await axios.get(OSRM_URL);
                 if (response.data.routes && response.data.routes.length > 0) {
@@ -31,8 +31,8 @@ const RouteLocationScreen = ({ route }) => {
                     }));
                     setRouteCoords(coordinates);
 
-                    // ✅ Haritayı rota koordinatlarına göre yakınlaştır
-                    if (mapRef.current) {
+                    // Haritayı rota boyunca hizala
+                    if (mapRef.current && coordinates.length > 0) {
                         mapRef.current.fitToCoordinates(coordinates, {
                             edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
                             animated: true,
@@ -63,28 +63,28 @@ const RouteLocationScreen = ({ route }) => {
                     longitudeDelta: 2,
                 }}
             >
-                {/* Başlangıç noktası (Gri) */}
+                {/* Başlangıç Şehri */}
                 <Marker
                     coordinate={{ latitude: startCityLatitude, longitude: startCityLongitude }}
-                    title="Başlangıç Noktası"
-                    pinColor="gray"
+                    title="Başlangıç Şehri"
+                    pinColor="blue"
                 />
 
-                {/* Ana yol noktası (Kırmızı) */}
+                {/* Ana Yol Noktası (Örn: Atatürk Bulvarı) */}
                 <Marker
                     coordinate={{ latitude, longitude }}
-                    title="Mevcut Konum"
+                    title={roadName || "Yol Üzerindeki Nokta"}
                     pinColor="red"
                 />
 
-                {/* Bitiş noktası (Gri) */}
+                {/* Varış Şehri */}
                 <Marker
                     coordinate={{ latitude: endCityLatitude, longitude: endCityLongitude }}
-                    title="Varış Noktası"
-                    pinColor="gray"
+                    title="Varış Şehri"
+                    pinColor="green"
                 />
 
-                {/* Gerçek Yol Üzerinden Rota Çizgisi */}
+                {/* Rota Çizgisi */}
                 {routeCoords.length > 0 && (
                     <Polyline
                         coordinates={routeCoords}

@@ -51,6 +51,7 @@ const HomeScreen = ({ navigation }) => {
     };
 
     return (
+
         <View style={styles.container}>
             <CityTextInput city={startCity} setCity={setStartCity} placeholder="Başlangıç Şehri" />
             <CityTextInput city={endCity} setCity={setEndCity} placeholder="Varış Şehri" />
@@ -60,27 +61,57 @@ const HomeScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.mapContainer}>
-                <CustomMap startCoords={startCoords} endCoords={endCoords} setRouteData={setRouteData} />
+                <CustomMap
+                    startCoords={startCoords}
+                    endCoords={endCoords}
+                    setRouteData={setRouteData}
+                />
+                {/* {startCoords && endCoords ? (
+                    <CustomMap
+                        startCoords={startCoords}
+                        endCoords={endCoords}
+                        setRouteData={setRouteData}
+                    />
+                ) : (
+                    <View style={styles.activityIndicatorContainer}>
+                        <ActivityIndicator size="large" />
+                    </View>
+                )} */}
             </View>
 
             <View style={styles.buttonContainer}>
                 <Button
                     title="GÜZERGAHLARI GÖSTER"
-                    onPress={() => {
-                        navigation.navigate("WeatherScreen", { routeData, startCity, endCity }); // 🔥 Burada routeData'nın düzgün gönderildiğini kontrol ediyoruz
-                    }}
+                    onPress={() =>
+                        navigation.navigate("WeatherScreen", { routeData, startCity, endCity })
+                    }
                     disabled={!isRouteReady}
                 />
+                <Button
+                    title="YOL DURUMU"
+                    onPress={() => navigation.navigate("RoadCondition")}
+                />
             </View>
-
         </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    buttonContainer: { padding: 10, backgroundColor: "#fff", alignItems: "center" },
+    buttonContainer: {
+        padding: 10,
+        backgroundColor: "#fff",
+        alignItems: "center",
+        flexDirection: "row",
+        gap: 10,
+        justifyContent: "center",
+    },
     mapContainer: { flex: 6 },
+    activityIndicatorContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+    },
 });
 
 export default HomeScreen;

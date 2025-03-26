@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, SectionList, StyleSheet, ActivityIndicator } from "react-native";
 import axios from "axios";
-
-const API_KEY = "e08aec03bff4306713ccb906ffdc971f"; // OpenWeather API anahtarın
+import { OPENWEATHER_API_KEY } from '@env';
 
 const CityWeatherDetailScreen = ({ route }) => {
     const { city } = route.params || {};
@@ -13,7 +12,7 @@ const CityWeatherDetailScreen = ({ route }) => {
         const fetchWeatherData = async () => {
             try {
                 // 🔥 Önce şehir koordinatlarını al
-                const geoUrl = `http://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${API_KEY}`;
+                const geoUrl = `http://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${OPENWEATHER_API_KEY}`;
                 const geoResponse = await axios.get(geoUrl);
 
                 if (geoResponse.data.length === 0) {
@@ -24,7 +23,7 @@ const CityWeatherDetailScreen = ({ route }) => {
                 const { lat, lon } = geoResponse.data[0];
 
                 // 🔥 Saatlik hava durumu verisini çekelim (PRO API Gerektirir)
-                const url = `https://pro.openweathermap.org/data/2.5/forecast/hourly?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=tr`;
+                const url = `https://pro.openweathermap.org/data/2.5/forecast/hourly?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=tr`;
                 const response = await axios.get(url);
 
                 // 🔥 Gelen hava durumu verisini günlere göre gruplayalım

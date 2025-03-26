@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, StyleSheet, Button } from "react-native";
+import { View, Text, FlatList, StyleSheet, Button, ActivityIndicator } from "react-native";
 import axios from "axios";
 import { OPENWEATHER_API_KEY } from '@env';
 
@@ -111,12 +111,11 @@ const WeatherScreen = ({ route, navigation }) => {
 
                         {weatherData[item.name] ? (
                             <>
-                                <Text>🕓 Tahmin Zamanı: {weatherData[item.name].dt_txt}</Text>
                                 <Text>🌡 Sıcaklık: {weatherData[item.name].temp}°C</Text>
                                 <Text>☁️ Hava Durumu: {weatherData[item.name].description}</Text>
                             </>
                         ) : (
-                            <Text>🔄 Hava durumu yükleniyor...</Text>
+                            <ActivityIndicator />
                         )}
 
                         <View style={styles.buttonContainer}>
@@ -129,6 +128,8 @@ const WeatherScreen = ({ route, navigation }) => {
                                 })}
                                 color="#007BFF"
                             />
+                            {/* 
+                                    ------- DÜZELTİLECEK
                             <Button
                                 title="Rota Lokasyonu"
                                 onPress={() => navigation.navigate("RouteLocationScreen", {
@@ -144,7 +145,7 @@ const WeatherScreen = ({ route, navigation }) => {
                                 })}
                                 color="#28A745"
                                 disabled={!startCityCoords || !endCityCoords || !startCityWeather || !endCityWeather}
-                            />
+                            /> */}
                         </View>
                     </View>
                 )}
