@@ -102,53 +102,52 @@ const WeatherScreen = ({ route, navigation }) => {
                 data={routeData}
                 keyExtractor={(item, index) => index.toString()}
                 style={styles.flatListStyle}
-                renderItem={({ item }) => (
-                    <View style={styles.item}>
-                        <Text style={styles.roadTitle}>📍 Yol: {item.name || "Bilinmeyen Yol"}</Text>
-                        <Text>📍 Koordinatlar: {item.latitude}, {item.longitude}</Text>
-                        <Text>🕒 Tahmini Varış Süresi: {Math.floor(item.duration / 3600)} Saat - {Math.floor((item.duration % 3600) / 60)} Dakika</Text>
-                        <Text>⏰ Tahmini Varış Saati: {item.formattedArrivalTime}</Text>
+                renderItem={({ item }) => {
+                    const arrivalDate = new Date(item.formattedArrivalTime);
+                    const timeString = arrivalDate.toTimeString().slice(0, 5); // HH:mm
+                    const dateString = `${arrivalDate.getDate().toString().padStart(2, "0")}.${(arrivalDate.getMonth() + 1)
+                        .toString()
+                        .padStart(2, "0")}.${arrivalDate.getFullYear()}`; // dd.mm.yyyy
 
-                        {weatherData[item.name] ? (
-                            <>
-                                <Text>🌡 Sıcaklık: {weatherData[item.name].temp}°C</Text>
-                                <Text>☁️ Hava Durumu: {weatherData[item.name].description}</Text>
-                            </>
-                        ) : (
-                            <ActivityIndicator />
-                        )}
+                    const totalMinutes = Math.floor(item.duration / 60);
+                    const hours = Math.floor(totalMinutes / 60);
+                    const minutes = totalMinutes % 60;
+                    const formattedDuration =
+                        hours > 0
+                            ? `${hours} Saat${minutes > 0 ? ` - ${minutes} Dakika` : ""}`
+                            : `${minutes} Dakika`;
 
-                        <View style={styles.buttonContainer}>
-                            <Button
-                                title="Hava Durumu"
-                                onPress={() => navigation.navigate("WeatherScreenDetail", {
-                                    roadName: item.name,
-                                    latitude: item.latitude,
-                                    longitude: item.longitude,
-                                })}
-                                color="#007BFF"
-                            />
-                            {/* 
-                                    ------- DÜZELTİLECEK
-                            <Button
-                                title="Rota Lokasyonu"
-                                onPress={() => navigation.navigate("RouteLocationScreen", {
-                                    roadName: item.name,
-                                    latitude: item.latitude,
-                                    longitude: item.longitude,
-                                    startCityLatitude: startCityCoords?.latitude,
-                                    startCityLongitude: startCityCoords?.longitude,
-                                    endCityLatitude: endCityCoords?.latitude,
-                                    endCityLongitude: endCityCoords?.longitude,
-                                    startCityWeather: startCityWeather,
-                                    endCityWeather: endCityWeather
-                                })}
-                                color="#28A745"
-                                disabled={!startCityCoords || !endCityCoords || !startCityWeather || !endCityWeather}
-                            /> */}
+                    return (
+                        <View style={styles.item}>
+                            <Text style={styles.roadTitle}>📍 Yol: {item.name || "Bilinmeyen Yol"}</Text>
+                            {/* <Text>📍 Koordinatlar: {item.latitude}, {item.longitude}</Text> */}
+                            <Text>🕒 Tahmini Varış Süresi: {formattedDuration}</Text>
+                            <Text>⏰ Tahmini Varış Saati: {timeString}</Text>
+                            <Text>📅 Varış Günü: {dateString}</Text>
+
+                            {weatherData[item.name] ? (
+                                <>
+                                    <Text style={{fontWeight:"bold"}}>🌡 Sıcaklık: {weatherData[item.name].temp}°C</Text>
+                                    <Text style={{fontWeight:"bold"}}>☁️ Hava Durumu: {weatherData[item.name].description}</Text>
+                                </>
+                            ) : (
+                                <ActivityIndicator />
+                            )}
+
+                            <View style={styles.buttonContainer}>
+                                <Button
+                                    title="Hava Durumu"
+                                    onPress={() => navigation.navigate("WeatherScreenDetail", {
+                                        roadName: item.name,
+                                        latitude: item.latitude,
+                                        longitude: item.longitude,
+                                    })}
+                                    color="#007BFF"
+                                />
+                            </View>
                         </View>
-                    </View>
-                )}
+                    );
+                }}
             />
         </View>
     );

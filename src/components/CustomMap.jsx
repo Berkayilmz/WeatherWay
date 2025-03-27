@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View, Text, ActivityIndicator } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from "react-native-maps";
 import * as Location from "expo-location";
 import axios from "axios";
@@ -9,7 +9,6 @@ const CustomMap = ({ startCoords, endCoords, setRouteData }) => {
     const [initialRegion, setInitialRegion] = useState(null);
     const mapRef = useRef(null);
 
-    // 📍 Kullanıcının konumunu al
     useEffect(() => {
         (async () => {
             let { status } = await Location.requestForegroundPermissionsAsync();
@@ -94,11 +93,10 @@ const CustomMap = ({ startCoords, endCoords, setRouteData }) => {
         fetchRoute();
     }, [startCoords, endCoords]);
 
-    // 🌍 İlk konum gelmediyse loading göster
     if (!initialRegion) {
         return (
             <View style={styles.loadingContainer}>
-                <Text>📍 Konum alınıyor...</Text>
+                <ActivityIndicator size="large"/>
             </View>
         );
     }
