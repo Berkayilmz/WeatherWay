@@ -17,7 +17,7 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ title: "Harita" }} />
+          <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
           <Stack.Screen name="WeatherScreen" component={WeatherScreen} options={{ title: "Hava Durumu" }} />
           <Stack.Screen name="WeatherScreenDetail" component={WeatherScreenDetail} options={{ title: "Hava Durumu Detayları" }} />
           <Stack.Screen name="CityWeatherDetailScreen" component={CityWeatherDetailScreen} options={{ title: "Hava Durumu Detayları" }} />

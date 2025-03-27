@@ -96,33 +96,39 @@ const CustomMap = ({ startCoords, endCoords, setRouteData }) => {
     if (!initialRegion) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large"/>
+                <ActivityIndicator size="large" />
             </View>
         );
     }
 
     return (
-        <MapView
-            ref={mapRef}
-            provider={PROVIDER_DEFAULT}
-            style={styles.map}
-            initialRegion={initialRegion}
-            showsUserLocation={true}
-        >
-            {startCoords && (
-                <Marker coordinate={startCoords} title="Başlangıç Noktası" pinColor="blue" />
-            )}
-            {endCoords && (
-                <Marker coordinate={endCoords} title="Varış Noktası" pinColor="blue" />
-            )}
-            {routeCoords.length > 0 && (
-                <Polyline coordinates={routeCoords} strokeWidth={4} strokeColor="blue" />
-            )}
-        </MapView>
+        <View style={styles.container}>
+            <MapView
+                ref={mapRef}
+                provider={PROVIDER_DEFAULT}
+                style={styles.map}
+                initialRegion={initialRegion}
+                showsUserLocation={true}
+            >
+                {startCoords && (
+                    <Marker coordinate={startCoords} title="Başlangıç Noktası" pinColor="blue" />
+                )}
+                {endCoords && (
+                    <Marker coordinate={endCoords} title="Varış Noktası" pinColor="blue" />
+                )}
+                {routeCoords.length > 0 && (
+                    <Polyline coordinates={routeCoords} strokeWidth={4} strokeColor="blue" />
+                )}
+            </MapView>
+        </View>
+
     );
 };
 
 const styles = StyleSheet.create({
+    container: {
+
+    },
     map: {
         width: "100%",
         height: "100%",
