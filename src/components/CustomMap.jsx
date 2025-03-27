@@ -1,12 +1,38 @@
 import React, { useEffect, useState, useRef } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View, Text } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from "react-native-maps";
+import * as Location from "expo-location";
 import axios from "axios";
 
 const CustomMap = ({ startCoords, endCoords, setRouteData }) => {
     const [routeCoords, setRouteCoords] = useState([]);
+    const [initialRegion, setInitialRegion] = useState(null);
     const mapRef = useRef(null);
 
+    // 📍 Kullanıcının konumunu al
+    useEffect(() => {
+        (async () => {
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                console.warn("Konum izni reddedildi.");
+                return;
+            }
+
+            const location = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.Highest,
+                timeout: 5000
+            });
+
+            setInitialRegion({
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+                latitudeDelta: 0.05,
+                longitudeDelta: 0.05,
+            });
+        })();
+    }, []);
+
+    // 📦 Rota verisi
     useEffect(() => {
         if (!startCoords || !endCoords) return;
 
@@ -32,16 +58,11 @@ const CustomMap = ({ startCoords, endCoords, setRouteData }) => {
                     leg.steps.forEach((step) => {
                         const [lon, lat] = step.maneuver.location;
                         const name = step.name;
-
-                        // 🔥 1 dakikadan kısa veya isimsiz yolları atla
                         if (!name || name === "İsimsiz Yol" || step.duration < 60) return;
 
                         totalDuration += step.duration;
                         const estimatedArrival = new Date(startTime.getTime() + totalDuration * 1000);
-
-                        // Türkiye saatine +3 saat ekleyelim:
                         const estimatedArrivalTR = new Date(estimatedArrival.getTime() + 3 * 60 * 60 * 1000);
-
                         const formattedArrivalTime = estimatedArrivalTR.toISOString().replace("T", " ").substring(0, 19);
 
                         if (!pointsMap.has(name)) {
@@ -73,17 +94,22 @@ const CustomMap = ({ startCoords, endCoords, setRouteData }) => {
         fetchRoute();
     }, [startCoords, endCoords]);
 
+    // 🌍 İlk konum gelmediyse loading göster
+    if (!initialRegion) {
+        return (
+            <View style={styles.loadingContainer}>
+                <Text>📍 Konum alınıyor...</Text>
+            </View>
+        );
+    }
+
     return (
         <MapView
             ref={mapRef}
             provider={PROVIDER_DEFAULT}
             style={styles.map}
-            initialRegion={{
-                latitude: startCoords ? startCoords.latitude : 39.9208,
-                longitude: startCoords ? startCoords.longitude : 32.8541,
-                latitudeDelta: 5,
-                longitudeDelta: 5,
-            }}
+            initialRegion={initialRegion}
+            showsUserLocation={true}
         >
             {startCoords && (
                 <Marker coordinate={startCoords} title="Başlangıç Noktası" pinColor="blue" />
@@ -102,6 +128,11 @@ const styles = StyleSheet.create({
     map: {
         width: "100%",
         height: "100%",
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
     },
 });
 

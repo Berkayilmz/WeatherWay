@@ -17,10 +17,11 @@ const WeatherScreenDetail = ({ route }) => {
 
                 if (response.data.list) {
                     const now = new Date();
+                    now.setMinutes(0, 0, 0); // 🔥 Sadece saat bazlı karşılaştırma
 
                     const filteredData = response.data.list.filter(item => {
                         const forecastTime = new Date(item.dt_txt);
-                        return forecastTime > now && item.dt_txt.includes(":00:00"); // 🔥 SADECE GELECEK SAATLER
+                        return forecastTime >= now && item.dt_txt.includes(":00:00"); // ⏰ Şu saat ve sonrası
                     });
 
                     setHourlyForecast(filteredData);
@@ -37,30 +38,28 @@ const WeatherScreenDetail = ({ route }) => {
     }, []);
 
     return (
-            <View style={styles.container}>
-                <Text style={styles.title}>{roadName} İçin Saatlik Hava Durumu</Text>
+        <View style={styles.container}>
+            <Text style={styles.title}>{roadName} İçin Saatlik Hava Durumu</Text>
 
-                {loading ? (
-                    <ActivityIndicator size="large" color="#0000ff" />
-                ) : hourlyForecast.length > 0 ? (
-                    <FlatList
-                        data={hourlyForecast}
-                        keyExtractor={(item, index) => index.toString()}
-                        renderItem={({ item }) => (
-                            <View style={styles.item}>
-                                <Text>📅 Tarih: {item.dt_txt.split(" ")[0]}</Text>
-                                <Text>⏰ Saat: {item.dt_txt.split(" ")[1]}</Text>
-                                <Text>🌡 Sıcaklık: {item.main.temp}°C</Text>
-                                <Text>☁️ Hava Durumu: {item.weather[0].description}</Text>
-                            </View>
-                        )}
-                    />
-                ) : (
-                    <Text style={styles.noData}>⚠️ Saatlik hava durumu bilgisi bulunamadı!</Text>
-                )}
-            </View>
-
-
+            {loading ? (
+                <ActivityIndicator size="large" color="#0000ff" />
+            ) : hourlyForecast.length > 0 ? (
+                <FlatList
+                    data={hourlyForecast}
+                    keyExtractor={(item, index) => index.toString()}
+                    renderItem={({ item }) => (
+                        <View style={styles.item}>
+                            <Text>📅 Tarih: {item.dt_txt.split(" ")[0]}</Text>
+                            <Text>⏰ Saat: {item.dt_txt.split(" ")[1]}</Text>
+                            <Text>🌡 Sıcaklık: {item.main.temp}°C</Text>
+                            <Text>☁️ Hava Durumu: {item.weather[0].description}</Text>
+                        </View>
+                    )}
+                />
+            ) : (
+                <Text style={styles.noData}>⚠️ Saatlik hava durumu bilgisi bulunamadı!</Text>
+            )}
+        </View>
     );
 };
 
@@ -72,18 +71,18 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
-        backgroundColor: "transparent", // 👈 Arka planı saydam yaptık
+        backgroundColor: "transparent",
     },
     title: {
         fontSize: 20,
         fontWeight: "bold",
         marginBottom: 10,
         textAlign: "center",
-        color: "#000", // görünür olması için net renk
+        color: "#000",
     },
     item: {
         padding: 10,
-        backgroundColor: "rgba(255, 255, 255, 0.8)", // 👈 Hafif opak kutu
+        backgroundColor: "rgba(255, 255, 255, 0.8)",
         borderRadius: 8,
         marginBottom: 10,
     },
