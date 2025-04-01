@@ -1,3 +1,4 @@
+// HomeScreen.jsx
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -7,12 +8,12 @@ import {
   SafeAreaView,
   StatusBar,
   Platform,
-  Text
+  Text,
 } from "react-native";
 import CustomMap from "../src/components/CustomMap";
 import CityTextInput from "../src/components/CityTextInput";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
 import axios from "axios";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 const HomeScreen = ({ navigation }) => {
   const [startCity, setStartCity] = useState("");
@@ -21,12 +22,21 @@ const HomeScreen = ({ navigation }) => {
   const [endCoords, setEndCoords] = useState(null);
   const [routeData, setRouteData] = useState([]);
   const [isRouteReady, setIsRouteReady] = useState(false);
+
+  const [travelDate, setTravelDate] = useState(new Date());
   const [departureTime, setDepartureTime] = useState(null);
+
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
   useEffect(() => {
     setIsRouteReady(!!(startCoords && endCoords));
   }, [startCoords, endCoords]);
+
+  const handleDateConfirm = (date) => {
+    setTravelDate(date);
+    setShowDatePicker(false);
+  };
 
   const handleTimeConfirm = (date) => {
     const hours = date.getHours().toString().padStart(2, "0");
@@ -81,23 +91,45 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Saat seçimi */}
-        <View style={styles.buttonContainer}>
-          <Button
-            title={departureTime ? `Çıkış Saati: ${departureTime}` : "Çıkış Saati Seç"}
-            onPress={() => setShowTimePicker(true)}
-          />
-          <DateTimePickerModal
-            isVisible={showTimePicker}
-            mode="time"
-            onConfirm={handleTimeConfirm}
-            onCancel={() => setShowTimePicker(false)}
-            is24Hour={true}
-          />
+        <View style={styles.datetimeRow}>
+          <View style={styles.datetimeCard}>
+            <Text style={styles.datetimeLabel}>🗓️ Tarih</Text>
+            <Button
+              title={travelDate.toLocaleDateString("tr-TR")}
+              onPress={() => setShowDatePicker(true)}
+              color="#007BFF"
+            />
+          </View>
+
+          <View style={styles.datetimeCard}>
+            <Text style={styles.datetimeLabel}>🕒 Saat</Text>
+            <Button
+              title={departureTime || "Saat Seç"}
+              onPress={() => setShowTimePicker(true)}
+              color="#007BFF"
+            />
+          </View>
         </View>
 
+        <DateTimePickerModal
+          isVisible={showDatePicker}
+          mode="date"
+          onConfirm={handleDateConfirm}
+          onCancel={() => setShowDatePicker(false)}
+          minimumDate={new Date()}
+          maximumDate={new Date(Date.now() + 16 * 24 * 60 * 60 * 1000)}
+        />
+
+        <DateTimePickerModal
+          isVisible={showTimePicker}
+          mode="time"
+          onConfirm={handleTimeConfirm}
+          onCancel={() => setShowTimePicker(false)}
+          is24Hour={true}
+        />
+
         <View style={styles.buttonContainer}>
-          <Button title="Rota Oluştur" onPress={handleCreateRoute} />
+          <Button title="ROTA OLUŞTUR" onPress={handleCreateRoute} color="#007BFF" />
         </View>
 
         <View style={styles.mapContainer}>
@@ -106,6 +138,7 @@ const HomeScreen = ({ navigation }) => {
             endCoords={endCoords}
             setRouteData={setRouteData}
             departureTime={departureTime}
+            travelDate={travelDate}
           />
         </View>
 
@@ -117,15 +150,14 @@ const HomeScreen = ({ navigation }) => {
                 routeData,
                 startCity,
                 endCity,
+                travelDate: travelDate.toISOString(),
                 departureTime,
               })
             }
             disabled={!isRouteReady}
+            color={isRouteReady ? "#007BFF" : "#ccc"}
           />
-          {/* 
-                    ----------- YOL ÇALIŞMALARI VE YOL DURUMLARI EKLENECEK -------------
-          <Button title="YOL DURUMU" onPress={() => navigation.navigate("RoadCondition")} /> 
-          */}
+          <Button title="YOL DURUMU" onPress={() => navigation.navigate("RoadCondition")} color="#007BFF" />
         </View>
       </View>
     </SafeAreaView>
@@ -142,7 +174,6 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: "row",
     gap: 3,
-    backgroundColor: "#fff",
     paddingHorizontal: 10,
     paddingBottom: 5,
     justifyContent: "center",
@@ -150,15 +181,40 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flex: 1,
   },
+  datetimeRow: {
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    marginTop: 10,
+    paddingHorizontal: 10,
+    gap: 10,
+  },
+  datetimeCard: {
+    flex: 1,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 10,
+    padding: 10,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  datetimeLabel: {
+    fontSize: 14,
+    marginBottom: 6,
+    color: "#333",
+    fontWeight: "600",
+  },
   buttonContainer: {
     padding: 10,
-    backgroundColor: "#fff",
     alignItems: "center",
-    flexDirection: "column",
     gap: 10,
-    justifyContent: "center",
   },
-  mapContainer: { flex: 6 },
+  mapContainer: {
+    flex: 6,
+  },
 });
 
 export default HomeScreen;
