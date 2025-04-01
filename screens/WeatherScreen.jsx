@@ -22,6 +22,7 @@ const WeatherScreen = ({ route, navigation }) => {
                     const forecastList = response.data?.list || [];
 
                     const targetTime = new Date(item.formattedArrivalTime);
+                    // console.log(targetTime);
                     let closestForecast = null;
                     let smallestDiff = Infinity;
 

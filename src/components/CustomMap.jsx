@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
-import { StyleSheet, View, Text, ActivityIndicator } from "react-native";
+import { StyleSheet, View, ActivityIndicator } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from "react-native-maps";
 import * as Location from "expo-location";
 import axios from "axios";
 
-const CustomMap = ({ startCoords, endCoords, setRouteData }) => {
+const CustomMap = ({ startCoords, endCoords, setRouteData, departureTime }) => {
     const [routeCoords, setRouteCoords] = useState([]);
     const [initialRegion, setInitialRegion] = useState(null);
     const mapRef = useRef(null);
@@ -31,14 +31,12 @@ const CustomMap = ({ startCoords, endCoords, setRouteData }) => {
         })();
     }, []);
 
-    // 📦 Rota verisi
     useEffect(() => {
         if (!startCoords || !endCoords) return;
 
         const fetchRoute = async () => {
             try {
                 const OSRM_URL = `https://router.project-osrm.org/route/v1/driving/${startCoords.longitude},${startCoords.latitude};${endCoords.longitude},${endCoords.latitude}?overview=full&geometries=geojson&steps=true`;
-
                 const response = await axios.get(OSRM_URL);
                 const route = response.data.routes[0];
                 if (!route) return;
@@ -51,7 +49,18 @@ const CustomMap = ({ startCoords, endCoords, setRouteData }) => {
 
                 let totalDuration = 0;
                 let pointsMap = new Map();
-                const startTime = new Date();
+                let startTime = new Date();
+
+                if (departureTime) {
+                    const [hour, minute] = departureTime.split(":").map(Number);
+                    startTime.setHours(hour);
+                    startTime.setMinutes(minute);
+                    startTime.setSeconds(0);
+
+                    if (startTime < new Date()) {
+                        startTime.setDate(startTime.getDate() + 1);
+                    }
+                }
 
                 route.legs.forEach((leg) => {
                     leg.steps.forEach((step) => {
@@ -69,7 +78,7 @@ const CustomMap = ({ startCoords, endCoords, setRouteData }) => {
                                 name,
                                 latitude: lat,
                                 longitude: lon,
-                                duration: totalDuration,
+                                duration: totalDuration / 60, // dakika
                                 formattedArrivalTime,
                             });
                         }
@@ -121,14 +130,11 @@ const CustomMap = ({ startCoords, endCoords, setRouteData }) => {
                 )}
             </MapView>
         </View>
-
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-
-    },
+    container: {},
     map: {
         width: "100%",
         height: "100%",
