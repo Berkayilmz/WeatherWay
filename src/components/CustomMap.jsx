@@ -1,11 +1,17 @@
-// CustomMap.jsx
 import React, { useEffect, useState, useRef } from "react";
 import { StyleSheet, View, ActivityIndicator } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from "react-native-maps";
 import * as Location from "expo-location";
 import axios from "axios";
 
-const CustomMap = ({ startCoords, endCoords, setRouteData, departureTime, travelDate }) => {
+const CustomMap = ({
+  startCoords,
+  endCoords,
+  setRouteData,
+  departureTime,
+  travelDate,
+  showMapOnly,
+}) => {
   const [routeCoords, setRouteCoords] = useState([]);
   const [initialRegion, setInitialRegion] = useState(null);
   const mapRef = useRef(null);
@@ -33,7 +39,11 @@ const CustomMap = ({ startCoords, endCoords, setRouteData, departureTime, travel
   }, []);
 
   useEffect(() => {
-    if (!startCoords || !endCoords) return;
+    if (!startCoords || !endCoords) {
+      setRouteCoords([]);
+      setRouteData([]);
+      return;
+    }
 
     const fetchRoute = async () => {
       try {
@@ -49,72 +59,70 @@ const CustomMap = ({ startCoords, endCoords, setRouteData, departureTime, travel
         setRouteCoords(coordinates);
 
         let totalDuration = 0;
-        let pointsMap = new Map();
-        let lastAddedMinute = 0;
+        let segmentList = [];
+        let cumulativeDistance = 0;
 
         let startTime = new Date(travelDate);
-        const now = new Date();
-
         if (departureTime) {
-          const [hour, minute] = departureTime.split(":" ).map(Number);
+          const [hour, minute] = departureTime.split(":").map(Number);
           startTime.setHours(hour);
           startTime.setMinutes(minute);
           startTime.setSeconds(0);
-
-          // ⏳ Eğer seçilen saat şimdiki saatten önceyse, tarihi 1 gün ileri al
-          const selectedTime = new Date(startTime);
-          if (selectedTime.getTime() <= now.getTime()) {
-            startTime.setDate(startTime.getDate() + 1);
-          }
         } else {
+          const now = new Date();
           startTime.setHours(now.getHours());
           startTime.setMinutes(now.getMinutes());
           startTime.setSeconds(0);
         }
 
-        route.legs.forEach((leg) => {
-          leg.steps.forEach((step) => {
+        route.legs.forEach(leg => {
+          leg.steps.forEach(step => {
             const [lon, lat] = step.maneuver.location;
-            const name = step.name;
-
-            // ⏱ Tüm süreyi ekle (isimsiz olsa bile)
+            const name = step.name || "İsimsiz Yol";
+            const distanceKm = step.distance / 1000;
             totalDuration += step.duration;
+            cumulativeDistance += step.distance;
 
-            // Ama isimsiz adımı listeye ekleme
-            if (!name || name === "İsimsiz Yol") return;
+            const cumulativeMinutes = Math.floor(totalDuration / 60);
+            const cumulativeHours = Math.floor(cumulativeMinutes / 60);
+            const remainingCumulativeMinutes = cumulativeMinutes % 60;
 
-            // Süre formatlama
-            const minutes = Math.floor(totalDuration / 60);
-            const hours = Math.floor(minutes / 60);
-            const remainingMinutes = minutes % 60;
-            const formattedDuration =
-              hours > 0
-                ? `${hours} saat${remainingMinutes > 0 ? ` ${remainingMinutes} dakika` : ""}`
-                : `${minutes} dakika`;
+            const formattedCumulativeDuration =
+              cumulativeHours > 0
+                ? `${cumulativeHours} saat${remainingCumulativeMinutes > 0 ? ` ${remainingCumulativeMinutes} dakika` : ""}`
+                : `${cumulativeMinutes} dakika`;
 
             const estimatedArrival = new Date(startTime.getTime() + totalDuration * 1000);
             const estimatedArrivalTR = new Date(estimatedArrival.getTime() + 3 * 60 * 60 * 1000);
             const formattedArrivalTime = estimatedArrivalTR.toISOString().replace("T", " ").substring(0, 19);
 
-            // 🚫 Eğer önceki noktaya göre 5 dakikadan az fark varsa gösterme
-            if (minutes - lastAddedMinute < 5) return;
-            lastAddedMinute = minutes;
-
-            if (!pointsMap.has(name)) {
-              pointsMap.set(name, {
-                name,
-                latitude: lat,
-                longitude: lon,
-                duration: totalDuration, // saniye cinsinden
-                formattedDuration,
-                formattedArrivalTime,
-              });
-            }
+            segmentList.push({
+              name,
+              latitude: lat,
+              longitude: lon,
+              duration: step.duration,
+              distance: distanceKm,
+              cumulativeDistance: parseFloat(cumulativeDistance / 1000),
+              formattedArrivalTime,
+              formattedCumulativeDuration,
+            });
           });
         });
 
-        const uniquePoints = Array.from(pointsMap.values());
-        setRouteData(uniquePoints);
+        segmentList = segmentList.map((segment) => {
+          const totalMinutes = Math.floor(segment.duration / 60);
+          const hours = Math.floor(totalMinutes / 60);
+          const minutes = totalMinutes % 60;
+          return {
+            ...segment,
+            formattedDuration:
+              hours > 0
+                ? `${hours} saat${minutes > 0 ? ` ${minutes} dakika` : ""}`
+                : `${minutes} dakika`,
+          };
+        });
+
+        setRouteData(segmentList);
 
         if (mapRef.current && coordinates.length > 0) {
           mapRef.current.fitToCoordinates(coordinates, {

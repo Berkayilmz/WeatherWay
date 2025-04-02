@@ -10,18 +10,20 @@ import {
   Platform,
   Text,
 } from "react-native";
-import CustomMap from "../src/components/CustomMap";
-import CityTextInput from "../src/components/CityTextInput";
 import axios from "axios";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
-const HomeScreen = ({ navigation }) => {
+import CustomMap from "../src/components/CustomMap";
+import CityTextInput from "../src/components/CityTextInput";
+
+const HomeScreen = ({navigation}) => {
   const [startCity, setStartCity] = useState("");
   const [endCity, setEndCity] = useState("");
   const [startCoords, setStartCoords] = useState(null);
   const [endCoords, setEndCoords] = useState(null);
   const [routeData, setRouteData] = useState([]);
   const [isRouteReady, setIsRouteReady] = useState(false);
+  const [showMapOnly, setShowMapOnly] = useState(false); // 👈 Map odaklı görünüm
 
   const [travelDate, setTravelDate] = useState(new Date());
   const [departureTime, setDepartureTime] = useState(null);
@@ -77,39 +79,59 @@ const HomeScreen = ({ navigation }) => {
 
     await getCoordinates(startCity, "start");
     await getCoordinates(endCity, "end");
+    setShowMapOnly(true); // 👈 Map moduna geç
   };
 
+  const resetAll = () => {
+    setStartCity("");
+    setEndCity("");
+    setStartCoords(null);
+    setEndCoords(null);
+    setRouteData([]);
+    setIsRouteReady(false);
+    setTravelDate(new Date());
+    setDepartureTime(null);
+    setShowMapOnly(false); // 👈 input alanlarını geri getir
+  };
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <View style={styles.inputRow}>
-          <View style={styles.inputWrapper}>
-            <CityTextInput city={startCity} setCity={setStartCity} placeholder="Başlangıç Şehri" />
-          </View>
-          <View style={styles.inputWrapper}>
-            <CityTextInput city={endCity} setCity={setEndCity} placeholder="Varış Şehri" />
-          </View>
-        </View>
+        {!showMapOnly && (
+          <>
+            <View style={styles.inputRow}>
+              <View style={styles.inputWrapper}>
+                <CityTextInput city={startCity} setCity={setStartCity} placeholder="Başlangıç Şehri" />
+              </View>
+              <View style={styles.inputWrapper}>
+                <CityTextInput city={endCity} setCity={setEndCity} placeholder="Varış Şehri" />
+              </View>
+            </View>
 
-        <View style={styles.datetimeRow}>
-          <View style={styles.datetimeCard}>
-            <Text style={styles.datetimeLabel}>🗓️ Tarih</Text>
-            <Button
-              title={travelDate.toLocaleDateString("tr-TR")}
-              onPress={() => setShowDatePicker(true)}
-              color="#007BFF"
-            />
-          </View>
+            <View style={styles.datetimeRow}>
+              <View style={styles.datetimeCard}>
+                <Text style={styles.datetimeLabel}>🗓️ Çıkış Tarihi</Text>
+                <Button
+                  title={travelDate.toLocaleDateString("tr-TR")}
+                  onPress={() => setShowDatePicker(true)}
+                  color="#007BFF"
+                />
+              </View>
 
-          <View style={styles.datetimeCard}>
-            <Text style={styles.datetimeLabel}>🕒 Saat</Text>
-            <Button
-              title={departureTime || "Saat Seç"}
-              onPress={() => setShowTimePicker(true)}
-              color="#007BFF"
-            />
-          </View>
-        </View>
+              <View style={styles.datetimeCard}>
+                <Text style={styles.datetimeLabel}>🕒 Çıkış Saati</Text>
+                <Button
+                  title={departureTime || "Saat Seç"}
+                  onPress={() => setShowTimePicker(true)}
+                  color="#007BFF"
+                />
+              </View>
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <Button title="ROTA OLUŞTUR" onPress={handleCreateRoute} color="#007BFF" />
+            </View>
+          </>
+        )}
 
         <DateTimePickerModal
           isVisible={showDatePicker}
@@ -128,10 +150,6 @@ const HomeScreen = ({ navigation }) => {
           is24Hour={true}
         />
 
-        <View style={styles.buttonContainer}>
-          <Button title="ROTA OLUŞTUR" onPress={handleCreateRoute} color="#007BFF" />
-        </View>
-
         <View style={styles.mapContainer}>
           <CustomMap
             startCoords={startCoords}
@@ -139,26 +157,29 @@ const HomeScreen = ({ navigation }) => {
             setRouteData={setRouteData}
             departureTime={departureTime}
             travelDate={travelDate}
+            showMapOnly={showMapOnly}
           />
         </View>
 
-        <View style={styles.buttonContainer}>
-          <Button
-            title="GÜZERGAHLARI GÖSTER"
-            onPress={() =>
-              navigation.navigate("WeatherScreen", {
-                routeData,
-                startCity,
-                endCity,
-                travelDate: travelDate.toISOString(),
-                departureTime,
-              })
-            }
-            disabled={!isRouteReady}
-            color={isRouteReady ? "#007BFF" : "#ccc"}
-          />
-          <Button title="YOL DURUMU" onPress={() => navigation.navigate("RoadCondition")} color="#007BFF" />
-        </View>
+        {showMapOnly ? (
+          <View style={styles.mapButtons}>
+            <Button title="❌" onPress={resetAll} color="red" />
+            <Button
+              title="GÜZERGAHLARI GÖSTER"
+              onPress={() =>
+                navigation.navigate("WeatherScreen", {
+                  routeData,
+                  startCity,
+                  endCity,
+                  travelDate: travelDate.toISOString(),
+                  departureTime,
+                })
+              }
+              disabled={!isRouteReady}
+              color="#007BFF"
+            />
+          </View>
+        ) : null}
       </View>
     </SafeAreaView>
   );
@@ -178,9 +199,7 @@ const styles = StyleSheet.create({
     paddingBottom: 5,
     justifyContent: "center",
   },
-  inputWrapper: {
-    flex: 1,
-  },
+  inputWrapper: { flex: 1 },
   datetimeRow: {
     flexDirection: "row",
     justifyContent: "space-evenly",
@@ -214,6 +233,11 @@ const styles = StyleSheet.create({
   },
   mapContainer: {
     flex: 6,
+  },
+  mapButtons: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    padding: 10,
   },
 });
 

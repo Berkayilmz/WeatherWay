@@ -23,7 +23,7 @@ const WeatherScreenDetail = ({ route }) => {
 
                 if (response.data.list) {
                     const now = new Date();
-                    now.setMinutes(0, 0, 0); // sadece saat bazlı
+                    now.setMinutes(0, 0, 0);
 
                     const filteredData = response.data.list.filter(item => {
                         const forecastTime = new Date(item.dt_txt);
@@ -31,7 +31,7 @@ const WeatherScreenDetail = ({ route }) => {
                     });
 
                     const grouped = filteredData.reduce((acc, item) => {
-                        const date = item.dt_txt.split(" ")[0]; // yyyy-mm-dd
+                        const date = item.dt_txt.split(" ")[0];
                         if (!acc[date]) acc[date] = [];
                         acc[date].push(item);
                         return acc;
@@ -73,12 +73,22 @@ const WeatherScreenDetail = ({ route }) => {
                         );
                     }}
                     renderItem={({ item }) => {
-                        const time = item.dt_txt.split(" ")[1].slice(0, 5); // "04:00"
+                        const time = item.dt_txt.split(" ")[1].slice(0, 5);
+                        const visibility = item.visibility || 10000;
+                        let fogLevel = "🌫️ Sis Yoğunluğu: Sis Yok";
+                        if (visibility < 200) fogLevel = "🌫️ Yoğun Sis";
+                        else if (visibility < 500) fogLevel = "🌫️ Sisli";
+                        else if (visibility < 2000) fogLevel = "🌫️ Hafif Sis";
+
+                        const windSpeed = item.wind?.speed || 0;
+
                         return (
                             <View style={styles.item}>
                                 <Text>⏰ Saat: {time}</Text>
                                 <Text>🌡 Sıcaklık: {item.main.temp}°C</Text>
                                 <Text>☁️ Hava Durumu: {item.weather[0].description}</Text>
+                                <Text>{fogLevel}</Text>
+                                <Text>🌬️ Rüzgar: {windSpeed} m/s</Text>
                             </View>
                         );
                     }}

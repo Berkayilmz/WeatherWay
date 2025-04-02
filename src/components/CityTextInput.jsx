@@ -9,13 +9,20 @@ const CityTextInput = ({ city, setCity, placeholder }) => {
 
     useEffect(() => {
         const allCityDistrictPairs = [];
-
+    
         citiesData.data.forEach(il => {
+            const ilceAdlari = il.ilceler.map(ilce => ilce.ilce_adi.toLowerCase());
+    
+            const hasMerkez = ilceAdlari.includes("merkez");
+            if (!hasMerkez) {
+                allCityDistrictPairs.push(il.il_adi);
+            }
+    
             il.ilceler.forEach(ilce => {
                 allCityDistrictPairs.push(`${il.il_adi}, ${ilce.ilce_adi}`);
             });
         });
-
+    
         setCityDistrictArray(allCityDistrictPairs);
     }, []);
 
