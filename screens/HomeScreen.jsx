@@ -1,29 +1,30 @@
-// HomeScreen.jsx
 import React, { useState, useEffect } from "react";
 import {
   View,
-  Button,
   StyleSheet,
   Alert,
   SafeAreaView,
   StatusBar,
   Platform,
-  Text,
+  Button,
 } from "react-native";
-import axios from "axios";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 import CustomMap from "../src/components/CustomMap";
 import CityTextInput from "../src/components/CityTextInput";
+import DateTimeSelector from "../src/components/DateTimeSelector";
+import LoadingOverlay from "../src/components/LoadingOverlay";
 
-const HomeScreen = ({navigation}) => {
+import { fetchCoordinates } from "../utils/geoUtils";
+
+const HomeScreen = ({ navigation }) => {
   const [startCity, setStartCity] = useState("");
   const [endCity, setEndCity] = useState("");
   const [startCoords, setStartCoords] = useState(null);
   const [endCoords, setEndCoords] = useState(null);
   const [routeData, setRouteData] = useState([]);
   const [isRouteReady, setIsRouteReady] = useState(false);
-  const [showMapOnly, setShowMapOnly] = useState(false); // 👈 Map odaklı görünüm
+  const [showMapOnly, setShowMapOnly] = useState(false);
 
   const [travelDate, setTravelDate] = useState(new Date());
   const [departureTime, setDepartureTime] = useState(null);
@@ -31,9 +32,11 @@ const HomeScreen = ({navigation}) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
-    setIsRouteReady(!!(startCoords && endCoords));
-  }, [startCoords, endCoords]);
+    setIsRouteReady(!!(startCoords && endCoords && routeData.length > 0));
+  }, [startCoords, endCoords, routeData]);
 
   const handleDateConfirm = (date) => {
     setTravelDate(date);
@@ -47,39 +50,22 @@ const HomeScreen = ({navigation}) => {
     setShowTimePicker(false);
   };
 
-  const getCoordinates = async (city, type) => {
-    try {
-      if (!city.trim()) {
-        Alert.alert("Hata", "Lütfen bir şehir girin!");
-        return;
-      }
-
-      const url = `https://nominatim.openstreetmap.org/search?q=${city}&format=json`;
-      const response = await axios.get(url, {
-        headers: { "User-Agent": "Mozilla/5.0" },
-      });
-
-      if (response.data.length > 0) {
-        const { lat, lon } = response.data[0];
-        const coords = { latitude: parseFloat(lat), longitude: parseFloat(lon) };
-        type === "start" ? setStartCoords(coords) : setEndCoords(coords);
-      } else {
-        Alert.alert("Hata", `${city} için koordinat bulunamadı!`);
-      }
-    } catch (error) {
-      Alert.alert("Hata", `Koordinatlar alınırken hata oluştu: ${city}`);
-    }
-  };
-
   const handleCreateRoute = async () => {
     if (!startCity || !endCity) {
       Alert.alert("Hata", "Lütfen iki şehir girin!");
       return;
     }
 
-    await getCoordinates(startCity, "start");
-    await getCoordinates(endCity, "end");
-    setShowMapOnly(true); // 👈 Map moduna geç
+    setLoading(true);
+    try {
+      const start = await fetchCoordinates(startCity);
+      const end = await fetchCoordinates(endCity);
+      setStartCoords(start);
+      setEndCoords(end);
+      setShowMapOnly(true);
+    } catch (error) {
+      Alert.alert("Hata", error.message);
+    }
   };
 
   const resetAll = () => {
@@ -91,8 +77,9 @@ const HomeScreen = ({navigation}) => {
     setIsRouteReady(false);
     setTravelDate(new Date());
     setDepartureTime(null);
-    setShowMapOnly(false); // 👈 input alanlarını geri getir
+    setShowMapOnly(false);
   };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -100,32 +87,27 @@ const HomeScreen = ({navigation}) => {
           <>
             <View style={styles.inputRow}>
               <View style={styles.inputWrapper}>
-                <CityTextInput city={startCity} setCity={setStartCity} placeholder="Başlangıç Şehri" />
+                <CityTextInput
+                  city={startCity}
+                  setCity={setStartCity}
+                  placeholder="Başlangıç Şehri"
+                />
               </View>
               <View style={styles.inputWrapper}>
-                <CityTextInput city={endCity} setCity={setEndCity} placeholder="Varış Şehri" />
-              </View>
-            </View>
-
-            <View style={styles.datetimeRow}>
-              <View style={styles.datetimeCard}>
-                <Text style={styles.datetimeLabel}>🗓️ Çıkış Tarihi</Text>
-                <Button
-                  title={travelDate.toLocaleDateString("tr-TR")}
-                  onPress={() => setShowDatePicker(true)}
-                  color="#007BFF"
-                />
-              </View>
-
-              <View style={styles.datetimeCard}>
-                <Text style={styles.datetimeLabel}>🕒 Çıkış Saati</Text>
-                <Button
-                  title={departureTime || "Saat Seç"}
-                  onPress={() => setShowTimePicker(true)}
-                  color="#007BFF"
+                <CityTextInput
+                  city={endCity}
+                  setCity={setEndCity}
+                  placeholder="Varış Şehri"
                 />
               </View>
             </View>
+
+            <DateTimeSelector
+              travelDate={travelDate}
+              departureTime={departureTime}
+              onShowDatePicker={() => setShowDatePicker(true)}
+              onShowTimePicker={() => setShowTimePicker(true)}
+            />
 
             <View style={styles.buttonContainer}>
               <Button title="ROTA OLUŞTUR" onPress={handleCreateRoute} color="#007BFF" />
@@ -141,7 +123,6 @@ const HomeScreen = ({navigation}) => {
           minimumDate={new Date()}
           maximumDate={new Date(Date.now() + 16 * 24 * 60 * 60 * 1000)}
         />
-
         <DateTimePickerModal
           isVisible={showTimePicker}
           mode="time"
@@ -158,10 +139,12 @@ const HomeScreen = ({navigation}) => {
             departureTime={departureTime}
             travelDate={travelDate}
             showMapOnly={showMapOnly}
+            routeData={routeData}
+            onRouteReady={() => setLoading(false)}
           />
         </View>
 
-        {showMapOnly ? (
+        {showMapOnly && (
           <View style={styles.mapButtons}>
             <Button title="❌" onPress={resetAll} color="red" />
             <Button
@@ -179,7 +162,9 @@ const HomeScreen = ({navigation}) => {
               color="#007BFF"
             />
           </View>
-        ) : null}
+        )}
+
+        <LoadingOverlay visible={loading} message="Rota yükleniyor..." />
       </View>
     </SafeAreaView>
   );
@@ -191,7 +176,9 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     backgroundColor: "#fff",
   },
-  container: { flex: 1 },
+  container: {
+    flex: 1,
+  },
   inputRow: {
     flexDirection: "row",
     gap: 3,
@@ -199,37 +186,12 @@ const styles = StyleSheet.create({
     paddingBottom: 5,
     justifyContent: "center",
   },
-  inputWrapper: { flex: 1 },
-  datetimeRow: {
-    flexDirection: "row",
-    justifyContent: "space-evenly",
-    alignItems: "center",
-    marginTop: 10,
-    paddingHorizontal: 10,
-    gap: 10,
-  },
-  datetimeCard: {
+  inputWrapper: {
     flex: 1,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 10,
-    padding: 10,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  datetimeLabel: {
-    fontSize: 14,
-    marginBottom: 6,
-    color: "#333",
-    fontWeight: "600",
   },
   buttonContainer: {
     padding: 10,
     alignItems: "center",
-    gap: 10,
   },
   mapContainer: {
     flex: 6,

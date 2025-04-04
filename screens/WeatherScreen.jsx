@@ -104,6 +104,8 @@ const WeatherScreen = ({ route, navigation }) => {
               <Text>⏱️ Toplam Geçen Süre: {item.formattedCumulativeDuration}</Text>
               <Text>📏 Güzergah Mesafesi: {item.distance?.toFixed(1)} km</Text>
               <Text>🕒 Tahmini Güzergah Süresi: {item.formattedDuration}</Text>
+              <Text>lat: {item.latitude}</Text>
+              <Text>lon {item.longitude}</Text>
 
               {weather ? (
                 <>
