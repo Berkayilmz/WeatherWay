@@ -99,13 +99,11 @@ const WeatherScreen = ({ route, navigation }) => {
           return (
             <View style={styles.item}>
               <Text style={styles.roadTitle}>📍 Yol: {item.name}</Text>
-              <Text>⏰ Tahmini Varış Saati: {timeString}</Text>
-              <Text>📅 Varış Günü: {dateString}</Text>
-              <Text>⏱️ Toplam Geçen Süre: {item.formattedCumulativeDuration}</Text>
-              <Text>📏 Güzergah Mesafesi: {item.distance?.toFixed(1)} km</Text>
-              <Text>🕒 Tahmini Güzergah Süresi: {item.formattedDuration}</Text>
-              <Text>lat: {item.latitude}</Text>
-              <Text>lon {item.longitude}</Text>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
+                <Text>⏰ Tahmini Varış: {timeString}</Text>
+                <Text>📅 {dateString}</Text>
+              </View>
+              <Text>⏱️ Toplam Varış Süresi: {item.formattedCumulativeDuration}</Text>
 
               {weather ? (
                 <>

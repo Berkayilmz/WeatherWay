@@ -131,35 +131,50 @@ const HomeScreen = ({ navigation }) => {
           is24Hour={true}
         />
 
-        <View style={styles.mapContainer}>
-          <CustomMap
-            startCoords={startCoords}
-            endCoords={endCoords}
-            setRouteData={setRouteData}
-            departureTime={departureTime}
-            travelDate={travelDate}
-            showMapOnly={showMapOnly}
-            routeData={routeData}
-            onRouteReady={() => setLoading(false)}
-          />
-        </View>
+        {showMapOnly ? (
+          <>
+            <View style={styles.fullscreenMap}>
+              <CustomMap
+                startCoords={startCoords}
+                endCoords={endCoords}
+                setRouteData={setRouteData}
+                departureTime={departureTime}
+                travelDate={travelDate}
+                showMapOnly={showMapOnly}
+                routeData={routeData}
+                onRouteReady={() => setLoading(false)}
+              />
+            </View>
 
-        {showMapOnly && (
-          <View style={styles.mapButtons}>
-            <Button title="❌" onPress={resetAll} color="red" />
-            <Button
-              title="GÜZERGAHLARI GÖSTER"
-              onPress={() =>
-                navigation.navigate("WeatherScreen", {
-                  routeData,
-                  startCity,
-                  endCity,
-                  travelDate: travelDate.toISOString(),
-                  departureTime,
-                })
-              }
-              disabled={!isRouteReady}
-              color="#007BFF"
+            <View style={styles.mapOverlayButtons}>
+              <Button title="❌" onPress={resetAll} color="red" />
+              <Button
+                title="GÜZERGAHLARI GÖSTER"
+                onPress={() =>
+                  navigation.navigate("WeatherScreen", {
+                    routeData,
+                    startCity,
+                    endCity,
+                    travelDate: travelDate.toISOString(),
+                    departureTime,
+                  })
+                }
+                disabled={!isRouteReady}
+                color="#007BFF"
+              />
+            </View>
+          </>
+        ) : (
+          <View style={styles.mapContainer}>
+            <CustomMap
+              startCoords={startCoords}
+              endCoords={endCoords}
+              setRouteData={setRouteData}
+              departureTime={departureTime}
+              travelDate={travelDate}
+              showMapOnly={showMapOnly}
+              routeData={routeData}
+              onRouteReady={() => setLoading(false)}
             />
           </View>
         )}
@@ -196,10 +211,19 @@ const styles = StyleSheet.create({
   mapContainer: {
     flex: 6,
   },
-  mapButtons: {
+  fullscreenMap: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
+  },
+  mapOverlayButtons: {
+    position: "absolute",
+    bottom: 20,
+    left: 0,
+    right: 0,
     flexDirection: "row",
     justifyContent: "space-around",
-    padding: 10,
+    paddingHorizontal: 20,
+    zIndex: 1,
   },
 });
 
