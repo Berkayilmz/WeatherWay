@@ -107,7 +107,7 @@ const WeatherScreen = ({ route, navigation }) => {
 
               {weather ? (
                 <>
-                  <Text style={{ fontWeight: "bold" }}>🌡 Sıcaklık: {weather.temp}°C</Text>
+                  <Text style={{ fontWeight: "bold" }}>🌡 Sıcaklık: {Math.round(weather.temp)}°C</Text>
                   <Text style={{ fontWeight: "bold" }}>☁️ Hava Durumu: {weather.description}</Text>
                   {weather.fogLevel && (
                     <Text style={{ fontWeight: "bold", color: "#555" }}>
