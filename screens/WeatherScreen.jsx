@@ -104,6 +104,8 @@ const WeatherScreen = ({ route, navigation }) => {
                 <Text>📅 {dateString}</Text>
               </View>
               <Text>⏱️ Toplam Varış Süresi: {item.formattedCumulativeDuration}</Text>
+              <Text>lat: {item.latitude}</Text>
+              <Text>long: {item.longitude}</Text>
 
               {weather ? (
                 <>
