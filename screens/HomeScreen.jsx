@@ -7,6 +7,7 @@ import {
   StatusBar,
   Platform,
   Button,
+  Keyboard,
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
@@ -24,7 +25,6 @@ const HomeScreen = ({ navigation }) => {
   const [endCoords, setEndCoords] = useState(null);
   const [routeData, setRouteData] = useState([]);
   const [isRouteReady, setIsRouteReady] = useState(false);
-  const [showMapOnly, setShowMapOnly] = useState(false);
 
   const [travelDate, setTravelDate] = useState(new Date());
   const [departureTime, setDepartureTime] = useState(null);
@@ -51,6 +51,7 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const handleCreateRoute = async () => {
+    Keyboard.dismiss();
     if (!startCity || !endCity) {
       Alert.alert("Hata", "Lütfen iki şehir girin!");
       return;
@@ -62,9 +63,10 @@ const HomeScreen = ({ navigation }) => {
       const end = await fetchCoordinates(endCity);
       setStartCoords(start);
       setEndCoords(end);
-      setShowMapOnly(true);
     } catch (error) {
       Alert.alert("Hata", error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -77,43 +79,38 @@ const HomeScreen = ({ navigation }) => {
     setIsRouteReady(false);
     setTravelDate(new Date());
     setDepartureTime(null);
-    setShowMapOnly(false);
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {!showMapOnly && (
-          <>
-            <View style={styles.inputRow}>
-              <View style={styles.inputWrapper}>
-                <CityTextInput
-                  city={startCity}
-                  setCity={setStartCity}
-                  placeholder="Başlangıç Şehri"
-                />
-              </View>
-              <View style={styles.inputWrapper}>
-                <CityTextInput
-                  city={endCity}
-                  setCity={setEndCity}
-                  placeholder="Varış Şehri"
-                />
-              </View>
-            </View>
-
-            <DateTimeSelector
-              travelDate={travelDate}
-              departureTime={departureTime}
-              onShowDatePicker={() => setShowDatePicker(true)}
-              onShowTimePicker={() => setShowTimePicker(true)}
+        <View style={styles.inputRow}>
+          <View style={styles.inputWrapper}>
+            <CityTextInput
+              city={startCity}
+              setCity={setStartCity}
+              placeholder="Başlangıç Şehri"
             />
+          </View>
+          <View style={styles.inputWrapper}>
+            <CityTextInput
+              city={endCity}
+              setCity={setEndCity}
+              placeholder="Varış Şehri"
+            />
+          </View>
+        </View>
 
-            <View style={styles.buttonContainer}>
-              <Button title="ROTA OLUŞTUR" onPress={handleCreateRoute} color="#007BFF" />
-            </View>
-          </>
-        )}
+        <DateTimeSelector
+          travelDate={travelDate}
+          departureTime={departureTime}
+          onShowDatePicker={() => setShowDatePicker(true)}
+          onShowTimePicker={() => setShowTimePicker(true)}
+        />
+
+        <View style={styles.buttonContainer}>
+          <Button title="ROTA OLUŞTUR" onPress={handleCreateRoute} color="#007BFF" />
+        </View>
 
         <DateTimePickerModal
           isVisible={showDatePicker}
@@ -131,53 +128,35 @@ const HomeScreen = ({ navigation }) => {
           is24Hour={true}
         />
 
-        {showMapOnly ? (
-          <>
-            <View style={styles.fullscreenMap}>
-              <CustomMap
-                startCoords={startCoords}
-                endCoords={endCoords}
-                setRouteData={setRouteData}
-                departureTime={departureTime}
-                travelDate={travelDate}
-                showMapOnly={showMapOnly}
-                routeData={routeData}
-                onRouteReady={() => setLoading(false)}
-              />
-            </View>
+        <View style={styles.mapContainer}>
+          <CustomMap
+            startCoords={startCoords}
+            endCoords={endCoords}
+            setRouteData={setRouteData}
+            departureTime={departureTime}
+            travelDate={travelDate}
+            routeData={routeData}
+            onRouteReady={() => setLoading(false)}
+          />
+        </View>
 
-            <View style={styles.mapOverlayButtons}>
-              <Button title="❌" onPress={resetAll} color="red" />
-              <Button
-                title="GÜZERGAHLARI GÖSTER"
-                onPress={() =>
-                  navigation.navigate("WeatherScreen", {
-                    routeData,
-                    startCity,
-                    endCity,
-                    travelDate: travelDate.toISOString(),
-                    departureTime,
-                  })
-                }
-                disabled={!isRouteReady}
-                color="#007BFF"
-              />
-            </View>
-          </>
-        ) : (
-          <View style={styles.mapContainer}>
-            <CustomMap
-              startCoords={startCoords}
-              endCoords={endCoords}
-              setRouteData={setRouteData}
-              departureTime={departureTime}
-              travelDate={travelDate}
-              showMapOnly={showMapOnly}
-              routeData={routeData}
-              onRouteReady={() => setLoading(false)}
-            />
-          </View>
-        )}
+        <View style={styles.mapOverlayButtons}>
+          <Button title="❌" onPress={resetAll} color="red" />
+          <Button
+            title="GÜZERGAHLARI GÖSTER"
+            onPress={() =>
+              navigation.navigate("WeatherScreen", {
+                routeData,
+                startCity,
+                endCity,
+                travelDate: travelDate.toISOString(),
+                departureTime,
+              })
+            }
+            disabled={!isRouteReady}
+            color="#007BFF"
+          />
+        </View>
 
         <LoadingOverlay visible={loading} message="Rota yükleniyor..." />
       </View>
@@ -210,10 +189,6 @@ const styles = StyleSheet.create({
   },
   mapContainer: {
     flex: 6,
-  },
-  fullscreenMap: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 0,
   },
   mapOverlayButtons: {
     position: "absolute",

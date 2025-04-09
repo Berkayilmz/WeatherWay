@@ -17,22 +17,22 @@ const CustomMap = ({
   const initialRegion = useInitialRegion();
   const mapRef = useRef(null);
 
-  // 🚗 Rota verilerini çek (polyline + segment)
   useEffect(() => {
-    if (!startCoords || !endCoords) {
-      setRouteCoords([]);
-      setRouteData([]);
-      return;
-    }
-
     const fetchRouteData = async () => {
+      if (!startCoords || !endCoords) {
+        setRouteCoords([]);
+        setRouteData([]);
+        return;
+      }
+
       try {
         const coords = await getPolylineCoords(startCoords, endCoords);
-        setRouteCoords(coords);            // polyline çizimi için
-        onRouteReady?.();                  // loading'i kapat
+        setRouteCoords(coords);
 
         const segments = await getRouteSegments(coords, travelDate, departureTime);
-        setRouteData(segments);           // weather screen için
+        setRouteData(segments);
+
+        onRouteReady?.();
       } catch (error) {
         console.error("🚨 Rota verileri alınırken hata:", error);
       }
@@ -43,18 +43,13 @@ const CustomMap = ({
 
   useEffect(() => {
     if (mapRef.current && routeCoords.length > 0) {
-      const timeout = setTimeout(() => {
-        mapRef.current.fitToCoordinates(routeCoords, {
-          edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
-          animated: true,
-        });
-      }, 300);
-
-      return () => clearTimeout(timeout);
+      mapRef.current.fitToCoordinates(routeCoords, {
+        edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+        animated: true,
+      });
     }
   }, [routeCoords]);
 
-  // 📍 Harita yüklenmeden önce loading göstergesi
   if (!initialRegion) {
     return (
       <View style={styles.loadingContainer}>
