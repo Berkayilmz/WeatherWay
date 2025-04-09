@@ -18,3 +18,4 @@ export const fetchCoordinates = async (city) => {
     longitude: parseFloat(lon),
   };
 };
+
