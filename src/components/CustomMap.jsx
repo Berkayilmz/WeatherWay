@@ -11,8 +11,6 @@ const CustomMap = ({
   setRouteData,
   departureTime,
   travelDate,
-  showMapOnly,
-  routeData,
   onRouteReady,
 }) => {
   const [routeCoords, setRouteCoords] = useState([]);
@@ -43,13 +41,16 @@ const CustomMap = ({
     fetchRouteData();
   }, [startCoords, endCoords, travelDate, departureTime]);
 
-  // 🔍 Polyline DOM'a yerleşince harita odaklama
   useEffect(() => {
     if (mapRef.current && routeCoords.length > 0) {
-      mapRef.current.fitToCoordinates(routeCoords, {
-        edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
-        animated: true,
-      });
+      const timeout = setTimeout(() => {
+        mapRef.current.fitToCoordinates(routeCoords, {
+          edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+          animated: true,
+        });
+      }, 300);
+
+      return () => clearTimeout(timeout);
     }
   }, [routeCoords]);
 
@@ -70,6 +71,14 @@ const CustomMap = ({
         style={styles.map}
         initialRegion={initialRegion}
         showsUserLocation={true}
+        onLayout={() => {
+          if (routeCoords.length > 0) {
+            mapRef.current?.fitToCoordinates(routeCoords, {
+              edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+              animated: true,
+            });
+          }
+        }}
       >
         {startCoords && (
           <Marker coordinate={startCoords} title="Başlangıç Noktası" pinColor="blue" />

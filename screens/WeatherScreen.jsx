@@ -68,6 +68,46 @@ const WeatherScreen = ({ route, navigation }) => {
     }
   }, [routeData]);
 
+  // ✅ Listeleme filtresi
+  const filteredRouteData = [];
+
+  for (let i = 0; i < routeData.length; i++) {
+    const current = routeData[i];
+    const previous = filteredRouteData[filteredRouteData.length - 1];
+
+    const currentName = current.name?.toLowerCase().trim();
+    const currentTime = new Date(current.formattedArrivalTime).getTime();
+
+    const sameNameIndex = filteredRouteData.findLastIndex(
+      (item) => item.name?.toLowerCase().trim() === currentName
+    );
+    if (sameNameIndex !== -1) {
+      const lastSame = filteredRouteData[sameNameIndex];
+      const lastSameTime = new Date(lastSame.formattedArrivalTime).getTime();
+      const diff = Math.abs(currentTime - lastSameTime) / (1000 * 60);
+      if (diff < 30) continue;
+    }
+
+    if (previous) {
+      const prevTime = new Date(previous.formattedArrivalTime).getTime();
+      const diff = Math.abs(currentTime - prevTime) / (1000 * 60);
+      if (diff < 20) continue;
+    }
+
+    filteredRouteData.push(current);
+  }
+
+  // 🟡 SON GÜZERGAHI MUTLAKA EKLE
+  const lastItem = routeData[routeData.length - 1];
+  const lastId = lastItem.name + lastItem.formattedArrivalTime;
+  const isLastAlreadyIncluded = filteredRouteData.some(
+    (item) => item.name + item.formattedArrivalTime === lastId
+  );
+
+  if (!isLastAlreadyIncluded) {
+    filteredRouteData.push(lastItem);
+  }
+
   if (!routeData || routeData.length === 0) {
     return (
       <View style={styles.container}>
@@ -83,7 +123,7 @@ const WeatherScreen = ({ route, navigation }) => {
       <Text style={styles.title}>🌍 Rota Üzerindeki Hava Durumu</Text>
 
       <FlatList
-        data={routeData}
+        data={filteredRouteData}
         keyExtractor={(item, index) => index.toString()}
         style={styles.flatListStyle}
         renderItem={({ item }) => {
